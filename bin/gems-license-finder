@@ -1,0 +1,33 @@
+#! /usr/bin/env ruby
+
+$:.unshift File.expand_path("../../lib",__FILE__)
+
+require 'gems-license-finder'
+require 'yaml'
+require 'json'
+require 'optparse'
+
+options = { output: ->(hash) { JSON.pretty_generate hash } }
+options[:oauth_token] =  ENV["GITHUB_TOKEN"] if ENV["GITHUB_TOKEN"]
+
+OptionParser.new do |opts|
+  opts.banner = "Usage: gems-license-finder gem-name [options]"
+  opts.separator ""
+
+  opts.on("-o", "--output FORMAT", "output format [json, yaml]") do |v|
+    options[:output] = ->(hash) { hash.to_yaml } if v =~ /yaml/i
+  end
+
+  opts.on("-t", "--token TOKEN", "github token string ( or by GITHUB_TOEKN environment variable )") do |v|
+    options[:oauth_token] = v
+  end
+
+  opts.separator ""
+  opts.separator "More information about how to generate the github token please look at:"
+  opts.separator "https://help.github.com/articles/git-over-https-using-oauth-token"
+  opts.separator ""
+  
+end.parse!
+
+ARGV.first or abort "No gem was specified..."
+puts options[:output].(GemsLicenseFinder.new(options).find ARGV.first)
