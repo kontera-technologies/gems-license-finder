@@ -91,5 +91,5 @@ pp client.find("rails")
 ```
 
 ## Warranty
-This software is provided â€œas isâ€ and without any express or implied warranties, including, without limitation, the implied warranties of merchantability and fitness for a particular purpose.
+This software is provided "as is" and without any express or implied warranties, including, without limitation, the implied warranties of merchantability and fitness for a particular purpose.
 
