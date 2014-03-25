@@ -18,10 +18,25 @@ module GemsLicenseFinder
   end
 
   class Client
+    LICENSE_FILES = %w[LICENSE LICENSE.md LICENSE.markdown MIT-LICENSE
+                       LICENSE.txt MIT-LICENSE.txt MIT.LICENSE MIT-LICENSE.md
+                       COPYING COPYING.md]
 
-    LICENSE_FILES = %w[LICENSE LICENSE.md LICENSE.markdown MIT-LICENSE LICENSE.txt
-      MIT-LICENSE.txt MIT.LICENSE MIT-LICENSE.md  COPYING COPYING.md]
     README_FILES = %w[README.md README.rdoc README.markdown README.txt README]
+
+    LICENSES_STRINGS = {
+      "mit"      => "Permission is hereby granted",
+      "affero"   => "GNU AFFERO",
+      "artistic" => "artistic",
+      "apache"   => "apache",
+      "bsd-3"    => "Neither the name of the",
+      "bsd"      => "Redistribution and use in source and binary forms",
+      "gpl-3"    => "GNU GENERAL.*?Version 3",
+      "gpl"      => "GNU GENERAL",
+      "lgpl-3"   => "GNU LESSER GENERAL.*?Version 3",
+      "lgpl"     => "GNU LESSER",
+      "ruby"     => "You may make and give away verbatim copies"
+    }
 
     def initialize options = {}
       @github = Github.new options.clone
@@ -32,6 +47,11 @@ module GemsLicenseFinder
     end
 
     private
+
+    def type_from_license_text t
+      LICENSES_STRINGS.each {|n,s| return normalize_licence(n) if utf8_match(t,s)}
+      nil
+    end
 
     def rubygems_info name
       begin
@@ -54,36 +74,49 @@ module GemsLicenseFinder
       user, repo = URI(url).path.split("/")[1..2]
       info = {license: nil, github_url: url, github_user: user, github_repo: repo}
 
+      type, lurl = []
+
       LICENSE_FILES.each do |file|
-        info[:license] = "#{url}/blob/master/#{file}" if fetch_github_file(user, repo, file)
+        content = fetch_github_file(user, repo, file)
+        info[:license] = "#{url}/blob/master/#{file}" if content
 
         if info[:license]
-          info[:license_type], info[:license_url] = normalize_licence("mit") if file =~ /mit/i
+          type, lurl = (file =~ /mit/i) ? 
+            normalize_licence("mit") : type_from_license_text(content)
           break
         end
       end
 
-      if (!info[:license_type] and gemspec = fetch_github_file(user,repo,"#{name}.gemspec") )
-        info[:license_type], info[:license_url] = normalize_licence(gemspec)
+      if (!type and gemspec = fetch_github_file(user,repo,"#{name}.gemspec") )
+        type, lurl = normalize_licence(gemspec)
       end
 
       README_FILES.each do |file|
-        next if info[:license]
+        next if info[:license] and type
         page_url = "https://github.com/#{user}/#{repo}/blob/master/#{file}"
         raw_content = fetch_github_file(user, repo, file)
         content = GitHub::Markup.render(file, raw_content) rescue next
+        type, lurl = normalize_licence(content) if content and type.nil?
 
-        if content and info[:license_type].nil?
-          info[:license_type], info[:license_url] = normalize_licence(content) 
+        info[:license] ||=  page_url + "#" + 
+          utf8_match(content,'<h\d+>.*?(license.*?)<\/h\d+>')[1].to_s.downcase.gsub(/\s/,"-") rescue nil
+
+        if info[:license] and type.nil?
+          type, lurl = type_from_license_text(content)
         end
 
-        msi = Regexp::FIXEDENCODING | Regexp::IGNORECASE | Regexp::MULTILINE
-        regex = Regexp.new('<h\d+>.*?(license.*?)<\/h\d+>'.force_encoding("UTF-8"),msi)
-        info[:license] =  page_url + "#" + 
-          content.match(regex)[1].to_s.downcase.gsub(/\s/,"-") rescue nil
       end
 
+      info[:license_type] = type if type
+      info[:license_url] = lurl if lurl
       info
+    end
+
+    def utf8_match text, regex
+       text.force_encoding("utf-8").match Regexp.new(
+         regex.force_encoding("utf-8"),
+         Regexp::FIXEDENCODING|Regexp::IGNORECASE|Regexp::MULTILINE
+       )
     end
 
     def find_github_url name

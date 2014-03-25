@@ -23,7 +23,7 @@ Usage: gems-license-finder gem-name [options]
     -o, --output FORMAT              output format [json, yaml]
     -t, --token TOKEN                github token string ( or by GITHUB_TOEKN environment variable )
 
-More information about how to generate the github token please look at:
+For more information about how to generate the github token please look at:
 https://help.github.com/articles/git-over-https-using-oauth-token
 ```
 
@@ -57,7 +57,7 @@ $ GITHUB_TOEKN=mygithubtoken gems-license-finder rails --output json
   "github_repo": "rails"
 }
 ```
-or 
+or via the `--token` switch
 ```
 $ gems-license-finder redis --output json --token mygithubtoken
 {
@@ -68,7 +68,7 @@ $ gems-license-finder redis --output json --token mygithubtoken
   "github_url": "https://github.com/redis/redis-rb",
   "github_user": "redis",
   "github_repo": "redis-rb"
-
+}
 ```
 via code
 
@@ -80,14 +80,15 @@ client = GemsLicenseFinder.new(oauth_token: "MY-GITHUB-TOKEN")
 pp client.find("rails")
 
 # this should be printed to the console
-
-{:license_type=>"MIT",
- :license_url=>"http://choosealicense.com/licenses/mit/",
- :homepage=>"http://github.com/rails/rails",
- :license=>"https://github.com/rails/rails/blob/master/README.md#license",
- :github_url=>"https://github.com/rails/rails",
- :github_user=>"rails",
- :github_repo=>"rails"}
+{
+  :license_type => "MIT",
+  :license_url  => "http://choosealicense.com/licenses/mit/",
+  :homepage     =>"http://github.com/rails/rails",
+  :license      =>"https://github.com/rails/rails/blob/master/README.md#license",
+  :github_url   =>"https://github.com/rails/rails",
+  :github_user  =>"rails",
+  :github_repo  =>"rails"
+}
 ```
 
 ## Warranty

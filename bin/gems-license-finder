@@ -1,4 +1,5 @@
 #! /usr/bin/env ruby
+# encoding: utf-8
 
 $:.unshift File.expand_path("../../lib",__FILE__)
 
@@ -23,7 +24,7 @@ OptionParser.new do |opts|
   end
 
   opts.separator ""
-  opts.separator "More information about how to generate the github token please look at:"
+  opts.separator "For more information about how to generate the github token please look at:"
   opts.separator "https://help.github.com/articles/git-over-https-using-oauth-token"
   opts.separator ""
   
