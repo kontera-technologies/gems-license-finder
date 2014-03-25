@@ -21,7 +21,7 @@ $ gems-license-finder --help
 Usage: gems-license-finder gem-name [options]
 
     -o, --output FORMAT              output format [json, yaml]
-    -t, --token TOKEN                github token string ( or by GITHUB_TOEKN environment variable )
+    -t, --token TOKEN                github token string ( or by GITHUB_TOKEN environment variable )
 
 For more information about how to generate the github token please look at:
 https://help.github.com/articles/git-over-https-using-oauth-token
@@ -46,7 +46,7 @@ Github token is optional, it allows authenticated users to submit more than 20 r
 minute
 
 ```
-$ GITHUB_TOEKN=mygithubtoken gems-license-finder rails --output json
+$ GITHUB_TOKEN=mygithubtoken gems-license-finder rails --output json
 {
   "license_type": "MIT",
   "license_url": "http://choosealicense.com/licenses/mit/",

@@ -19,7 +19,7 @@ OptionParser.new do |opts|
     options[:output] = ->(hash) { hash.to_yaml } if v =~ /yaml/i
   end
 
-  opts.on("-t", "--token TOKEN", "github token string ( or by GITHUB_TOEKN environment variable )") do |v|
+  opts.on("-t", "--token TOKEN", "github token string ( or by GITHUB_TOKEN environment variable )") do |v|
     options[:oauth_token] = v
   end
 
