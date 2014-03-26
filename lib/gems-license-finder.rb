@@ -20,7 +20,7 @@ module GemsLicenseFinder
   class Client
     LICENSE_FILES = %w[LICENSE LICENSE.md LICENSE.markdown MIT-LICENSE
                        LICENSE.txt MIT-LICENSE.txt MIT.LICENSE MIT-LICENSE.md
-                       COPYING COPYING.md]
+                       COPYING COPYING.md GNU GNU.txt GNU.rdoc GNU.markdown]
 
     README_FILES = %w[README.md README.rdoc README.markdown README.txt README]
 
@@ -43,15 +43,10 @@ module GemsLicenseFinder
     end
 
     def find name
-      rubygems_info( name ).merge( github_info name )
+      normalize(github_info name, rubygems_info( name ))
     end
 
     private
-
-    def type_from_license_text t
-      LICENSES_STRINGS.each {|n,s| return normalize_licence(n) if utf8_match(t,s)}
-      nil
-    end
 
     def rubygems_info name
       begin
@@ -60,29 +55,35 @@ module GemsLicenseFinder
         raise e.io.status.first == "404" ? GemNotFound.new(e) : e
       end
 
-      homepage = nil
+      info = Hash[content.scan(/<a href="(.*?)" rel.*>(.*?)</)].invert
       type, url = normalize_licence(
-        (content.match(/<h5>Licenses<\/h5>.*?<p>(.*?)</msi)[1]  rescue ""))
-      homepage = (content.match(/<a href="(.*?)".*?>Source/)[1] rescue nil)
-      homepage ||= (content.match(/<a href="(.*?)".*?>Home/)[1] rescue nil)
+        (utf8_match(content,'<h5>Licenses<\/h5>.*?<p>(.*?)<')[1]  rescue ""))
+      description = (utf8_match(content,'<div id="markup">.*?<p>(.*?)<')[1].
+                     strip.squeeze(" ").gsub(/\n/,"") rescue nil)
 
-      { license_type: type, license_url: url, homepage: homepage }
+      info.merge({ license_type: type, license_url: url, description: description })
     end
 
-    def github_info name
-      url = find_github_url name
-      user, repo = URI(url).path.split("/")[1..2]
-      info = {license: nil, github_url: url, github_user: user, github_repo: repo}
+    def github_info name, rubygems
+      url = rubygems["Source Code"] || rubygems["Homepage"]
+      if url.to_s =~ /github\.com/
+        # Sometimes the homepage in rubygems.org is old, e.g:
+        # carlhuda/bundler => bundler/bundler
+        open(url.sub("http:","https:")) { |o| url = o.base_uri.to_s } # follow redirects
+      else
+        url = nil
+      end
 
-      type, lurl = []
+      url ||= find_github_url name
+      user, repo, type, lurl, license = URI(url).path.split("/")[1..2]
 
       LICENSE_FILES.each do |file|
         content = fetch_github_file(user, repo, file)
-        info[:license] = "#{url}/blob/master/#{file}" if content
+        license = "#{url}/blob/master/#{file}" if content
 
-        if info[:license]
-          type, lurl = (file =~ /mit/i) ? 
-            normalize_licence("mit") : type_from_license_text(content)
+        if license
+          type, lurl = (file =~ /mit|gnu/i) ? 
+            normalize_licence(file.split(".").first) : type_from_license_text(content)
           break
         end
       end
@@ -92,24 +93,21 @@ module GemsLicenseFinder
       end
 
       README_FILES.each do |file|
-        next if info[:license] and type
-        page_url = "https://github.com/#{user}/#{repo}/blob/master/#{file}"
-        raw_content = fetch_github_file(user, repo, file)
-        content = GitHub::Markup.render(file, raw_content) rescue next
-        type, lurl = normalize_licence(content) if content and type.nil?
+        break if license and type
+        content = GitHub::Markup.render(file,fetch_github_file(user,repo,file)) rescue next
+        type, lurl = normalize_licence(content) if type.nil?
 
-        info[:license] ||=  page_url + "#" + 
-          utf8_match(content,'<h\d+>.*?(license.*?)<\/h\d+>')[1].to_s.downcase.gsub(/\s/,"-") rescue nil
+        license ||= "https://github.com/#{user}/#{repo}/blob/master/#{file}#" + 
+          utf8_match(content,'<h\d+>.*?(license.*?)<\/h\d+>')[1].
+          to_s.downcase.gsub(/\s/,"-") rescue nil
 
-        if info[:license] and type.nil?
-          type, lurl = type_from_license_text(content)
-        end
-
+        type, lurl = type_from_license_text(content) if license and type.nil?
       end
 
+      info = {license: license, github_url: url}
       info[:license_type] = type if type
       info[:license_url] = lurl if lurl
-      info
+      rubygems.merge info
     end
 
     def utf8_match text, regex
@@ -128,6 +126,15 @@ module GemsLicenseFinder
         Base64.decode64(@github.repos.contents.get(user, repo, file).content)
       rescue Github::Error::NotFound
       end
+    end
+
+    def type_from_license_text t
+      LICENSES_STRINGS.each {|n,s| return normalize_licence(n) if utf8_match(t,s)}
+      nil
+    end
+
+    def normalize hash
+      Hash[hash.map {|k,v| [k.to_s.downcase.gsub(/\s/,"_"),v]}]
     end
 
     def normalize_licence str

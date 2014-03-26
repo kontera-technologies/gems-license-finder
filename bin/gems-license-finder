@@ -23,6 +23,11 @@ OptionParser.new do |opts|
     options[:oauth_token] = v
   end
 
+  opts.on("-v", "--version","print current version and exit") do
+    puts GemsLicenseFinder.version
+    exit
+  end
+
   opts.separator ""
   opts.separator "For more information about how to generate the github token please look at:"
   opts.separator "https://help.github.com/articles/git-over-https-using-oauth-token"

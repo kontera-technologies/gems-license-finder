@@ -22,6 +22,7 @@ Usage: gems-license-finder gem-name [options]
 
     -o, --output FORMAT              output format [json, yaml]
     -t, --token TOKEN                github token string ( or by GITHUB_TOKEN environment variable )
+    -v, --version                    Print version and exit
 
 For more information about how to generate the github token please look at:
 https://help.github.com/articles/git-over-https-using-oauth-token
@@ -29,15 +30,18 @@ https://help.github.com/articles/git-over-https-using-oauth-token
 
 finding the license of `bundler` gem
 ```
-$ gems-license-finder bundler --output json
+$ gems-license-finder bundler
 {
+  "homepage": "http://bundler.io",
+  "source_code": "http://github.com/carlhuda/bundler/",
+  "documentation": "http://gembundler.com",
+  "mailing_list": "http://groups.google.com/group/ruby-bundler?hl=en",
+  "bug_tracker": "http://github.com/carlhuda/bundler/issues",
   "license_type": "MIT",
   "license_url": "http://choosealicense.com/licenses/mit/",
-  "homepage": "http://github.com/carlhuda/bundler/",
-  "license": "https://github.com/bundler/bundler/blob/master/LICENSE.md",
-  "github_url": "https://github.com/bundler/bundler",
-  "github_user": "bundler",
-  "github_repo": "bundler"
+  "description": "Bundler manages an application&#x27;s dependencies through its entire life, across many machines, systematically and repeatably",
+  "license": "https://github.com/bundler/bundler//blob/master/LICENSE.md",
+  "github_url": "https://github.com/bundler/bundler/"
 }
 
 ```
@@ -46,28 +50,31 @@ Github token is optional, it allows authenticated users to submit more than 20 r
 minute
 
 ```
-$ GITHUB_TOKEN=mygithubtoken gems-license-finder rails --output json
+$ GITHUB_TOKEN=mygithubtoken gems-license-finder rails
 {
+  "homepage": "http://www.rubyonrails.org",
+  "source_code": "http://github.com/rails/rails",
+  "documentation": "http://api.rubyonrails.org",
+  "wiki": "http://wiki.rubyonrails.org",
+  "mailing_list": "http://groups.google.com/group/rubyonrails-talk",
+  "bug_tracker": "http://github.com/rails/rails/issues",
   "license_type": "MIT",
   "license_url": "http://choosealicense.com/licenses/mit/",
-  "homepage": "http://github.com/rails/rails",
+  "description": "Ruby on Rails is a full-stack web framework optimized for programmer happiness and sustainable productivity. It encourages beautiful code by favoring convention over configuration.",
   "license": "https://github.com/rails/rails/blob/master/README.md#license",
-  "github_url": "https://github.com/rails/rails",
-  "github_user": "rails",
-  "github_repo": "rails"
+  "github_url": "https://github.com/rails/rails"
 }
 ```
 or via the `--token` switch
 ```
-$ gems-license-finder redis --output json --token mygithubtoken
+$ gems-license-finder redis --token mygithubtoken
 {
+  "homepage": "https://github.com/redis/redis-rb",
   "license_type": "MIT",
   "license_url": "http://choosealicense.com/licenses/mit/",
-  "homepage": "https://github.com/redis/redis-rb",
+  "description": "A Ruby client that tries to match Redis&#x27; API one-to-one, while still providing an idiomatic interface. It features thread-safety, client-side sharding, pipelining, and an obsession for performance.",
   "license": "https://github.com/redis/redis-rb/blob/master/LICENSE",
-  "github_url": "https://github.com/redis/redis-rb",
-  "github_user": "redis",
-  "github_repo": "redis-rb"
+  "github_url": "https://github.com/redis/redis-rb"
 }
 ```
 via code
@@ -81,13 +88,16 @@ pp client.find("rails")
 
 # this should be printed to the console
 {
-  :license_type => "MIT",
-  :license_url  => "http://choosealicense.com/licenses/mit/",
-  :homepage     =>"http://github.com/rails/rails",
-  :license      =>"https://github.com/rails/rails/blob/master/README.md#license",
-  :github_url   =>"https://github.com/rails/rails",
-  :github_user  =>"rails",
-  :github_repo  =>"rails"
+  "homepage"=>"http://www.rubyonrails.org",
+  "source_code"=>"http://github.com/rails/rails",
+  "documentation"=>"http://api.rubyonrails.org",
+  "wiki"=>"http://wiki.rubyonrails.org",
+  "mailing_list"=>"http://groups.google.com/group/rubyonrails-talk",
+  "bug_tracker"=>"http://github.com/rails/rails/issues",
+  "license_type"=>"MIT",
+  "license_url"=>"http://choosealicense.com/licenses/mit/",
+  "license"=>"https://github.com/rails/rails/blob/master/README.md#license",
+  "github_url"=>"https://github.com/rails/rails"
 }
 ```
 
