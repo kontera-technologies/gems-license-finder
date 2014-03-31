@@ -19,10 +19,11 @@ module GemsLicenseFinder
 
   class Client
     LICENSE_FILES = %w[LICENSE LICENSE.md LICENSE.markdown MIT-LICENSE
-                       LICENSE.txt MIT-LICENSE.txt MIT.LICENSE MIT-LICENSE.md
-                       COPYING COPYING.md GNU GNU.txt GNU.rdoc GNU.markdown]
+                       LICENSE.txt MIT-LICENSE.txt MIT.LICENSE MIT_LICENSE 
+                       MIT-LICENSE.md LICENSE.rdoc License
+                       COPYING License.txt COPYING.md GNU GNU.txt GNU.rdoc GNU.markdown]
 
-    README_FILES = %w[README.md README.rdoc README.markdown README.txt README]
+    README_FILES = %w[README.md README.rdoc README.markdown README.txt README README.textile]
 
     LICENSES_STRINGS = {
       "mit"      => "Permission is hereby granted",
@@ -66,7 +67,7 @@ module GemsLicenseFinder
 
     def github_info name, rubygems
       url = rubygems["Source Code"] || rubygems["Homepage"]
-      if url.to_s =~ /github\.com/
+      if url.to_s =~ /\/\/github\.com/
         # Sometimes the homepage in rubygems.org is old, e.g:
         # carlhuda/bundler => bundler/bundler
         open(url.sub("http:","https:")) { |o| url = o.base_uri.to_s } # follow redirects
@@ -93,15 +94,22 @@ module GemsLicenseFinder
       end
 
       README_FILES.each do |file|
-        break if license and type
+        break if license and type 
         content = GitHub::Markup.render(file,fetch_github_file(user,repo,file)) rescue next
         type, lurl = normalize_licence(content) if type.nil?
 
-        license ||= "https://github.com/#{user}/#{repo}/blob/master/#{file}#" + 
-          utf8_match(content,'<h\d+>.*?(license.*?)<\/h\d+>')[1].
+        rurl = "https://github.com/#{user}/#{repo}/blob/master/#{file}"
+
+        license ||= rurl + "#" + utf8_match(content,'<h\d+>[\s|\t]*(license.*?)<\/h\d+>')[1].
           to_s.downcase.gsub(/\s/,"-") rescue nil
 
+        if license.nil? and utf8_match(content,'licen[cs]e')
+          license = rurl 
+          type, lurl = normalize_licence content
+        end
+
         type, lurl = type_from_license_text(content) if license and type.nil?
+        break if content
       end
 
       info = {license: license, github_url: url}
@@ -118,7 +126,8 @@ module GemsLicenseFinder
     end
 
     def find_github_url name
-      @github.search.repos(q: "#{name} language:ruby").to_a[1][1][0].html_url
+      (@github.search.repos(q: "#{name} language:ruby").to_a[1][1][0] ||
+       @github.search.repos(q: "ruby #{name}").to_a[1][1][0]).html_url
     end
 
     def fetch_github_file user, repo, file
@@ -139,27 +148,27 @@ module GemsLicenseFinder
 
     def normalize_licence str
       case str.downcase
-      when /(^|\W)mit(\W|$)/
+      when /(^|\W)mit(\W|$)/i
         ["MIT","http://choosealicense.com/licenses/mit/"]
-      when /(^|\W)bsd\W.*?3/
+      when /(^|\W)bsd\W.*?3/i
         ["BSD-3","http://choosealicense.com/licenses/bsd-3-clause/"]
-      when /(^|\W)bsd(\W|$)/
+      when /(^|\W)bsd(\W|$)/i
         ["BSD","http://choosealicense.com/licenses/bsd/"]
-      when /(^|\W)apache(\W|$)/
+      when /(^|\W)apache(\W|$)/i
         ["Apache","http://choosealicense.com/licenses/apache/"]
-      when /(^|\W)lgpl\W.*?3/
+      when /(^|\W)lgpl\W.*?3/i
         ["LGPL-3","http://choosealicense.com/licenses/lgpl-v3/"]
-      when /(^|\W)lgpl(\W|$)/
+      when /(^|\W)lgpl(\W|$)/i
         ["LGPL","http://choosealicense.com/licenses/lgpl-v2.1/"]
-      when /(affero)|(agpl)/
+      when /(affero)|(agpl)/i
         ["Affero-GPL","http://choosealicense.com/licenses/agpl/"]
-      when /(^|\W)gpl\W.*?3/
+      when /(^|\W)gpl\W.*?3/i
         ["GPL-3","http://choosealicense.com/licenses/gpl-v3/"]
-      when /(^|\W)gpl(\W|$)/
+      when /(^|\W)gpl(\W|$)/i
         ["GPL-2","http://choosealicense.com/licenses/gpl-v2/"]
-      when /(^|\W)artistic(\W|$)/
+      when /(^|\W)artistic(\W|$)/i
         ["Artistic","http://choosealicense.com/licenses/artistic/"]
-      when /(license.*?ruby)|(ruby.*?license)/
+      when /(licen[sc]e.*?ruby)|(ruby.*?licen[sc]e)/msi
         ["Ruby","https://www.ruby-lang.org/en/about/license.txt"]
       when "ruby"
         ["Ruby","https://www.ruby-lang.org/en/about/license.txt"]
