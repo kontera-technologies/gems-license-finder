@@ -59,7 +59,7 @@ module GemsLicenseFinder
       info = Hash[content.scan(/<a href="(.*?)" rel.*>(.*?)</)].invert
       type, url = normalize_licence(
         (utf8_match(content,'<h5>Licenses<\/h5>.*?<p>(.*?)<')[1]  rescue ""))
-      description = (utf8_match(content,'<div id="markup">.*?<p>(.*?)<')[1].
+      description = (utf8_match(content,'gem__desc.*?<p>(.*?)<')[1].
                      strip.squeeze(" ").gsub(/\n/,"") rescue nil)
 
       info.merge({ license_type: type, license_url: url, description: description })
