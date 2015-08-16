@@ -51,7 +51,7 @@ module GemsLicenseFinder
 
     def rubygems_info name
       begin
-        content = open("http://rubygems.org/gems/#{name}").read
+        content = open("https://rubygems.org/gems/#{name}").read
       rescue Exception => e
         raise e.io.status.first == "404" ? GemNotFound.new(e) : e
       end
@@ -126,8 +126,8 @@ module GemsLicenseFinder
     end
 
     def find_github_url name
-      (@github.search.repos(q: "#{name} language:ruby").to_a[1][1][0] ||
-       @github.search.repos(q: "ruby #{name}").to_a[1][1][0]).html_url
+      (@github.search.repos(q: "#{name} language:ruby")["items"] ||
+       @github.search.repos(q: "ruby #{name}")).first.html_url
     end
 
     def fetch_github_file user, repo, file
