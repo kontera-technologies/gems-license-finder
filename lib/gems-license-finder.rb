@@ -126,8 +126,8 @@ module GemsLicenseFinder
     end
 
     def find_github_url name
-      (@github.search.repos(q: "#{name} language:ruby")["items"] ||
-       @github.search.repos(q: "ruby #{name}")).first.html_url
+      (@github.search.repos(q: "#{name} language:ruby")["items"].first ||
+       @github.search.repos(q: "ruby #{name}")["items"].first).html_url
     end
 
     def fetch_github_file user, repo, file
