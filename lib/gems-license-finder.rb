@@ -45,7 +45,7 @@ module GemsLicenseFinder
     end
 
     def find name
-      normalize(github_info name, rubygems_info( name ))
+      normalize github_info(name , rubygems_info(name))
     end
 
     private
@@ -57,18 +57,18 @@ module GemsLicenseFinder
         raise e.io.status.first == "404" ? GemNotFound.new(e) : e
       end
 
-      info = Hash[content.scan(/<a href="(.*?)" rel.*>(.*?)</)].invert
+      info = Hash[content.scan(/<a rel=\"nofollow\".*?href=\"(.*?)\".*?>(.*?)</)].invert
       type, url = normalize_licence(
         (utf8_match(content,'<h5>Licenses<\/h5>.*?<p>(.*?)<')[1]  rescue ""))
       description = (CGI.unescapeHTML utf8_match(content,'gem__desc.*?<p>(.*?)<')[1].
                      strip.squeeze(" ").gsub(/\n/,"") rescue nil)
 
-      info.merge({ license_type: type, license_url: url, description: description })
+      info.merge license_type: type, license_url: url, description: description
     end
 
     def github_info name, rubygems
       url = rubygems["Source Code"] || rubygems["Homepage"]
-      if url.to_s =~ /\/\/github\.com/
+      if url.to_s =~ /github\.com/
         # Sometimes the homepage in rubygems.org is old, e.g:
         # carlhuda/bundler => bundler/bundler
         open(url.sub("http:","https:")) { |o| url = o.base_uri.to_s } # follow redirects
