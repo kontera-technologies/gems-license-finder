@@ -1,12 +1,12 @@
 $:.unshift File.expand_path('../lib', __FILE__)
 
-require 'gems-license-finder'
+require 'gems-license-finder/version'
 require 'rake'
 require 'rubygems/package_task'
 
 Gem::Specification.new do |s|
   s.name                  = "gems-license-finder"
-  s.version               = GemsLicenseFinder.version
+  s.version               = GemsLicenseFinder::VERSION
   s.platform              = Gem::Platform::RUBY
   s.summary               = "Poor man's license finder for rubygems"
   s.description           = "Poor man's license finder for rubygems, that might work"
@@ -23,12 +23,13 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'mocha'
 
   s.add_dependency "github_api"
+  s.add_dependency "rack", ">= 2.1.4"
   s.add_dependency "github-markup"
   s.add_dependency "posix-spawn"
   s.add_dependency "redcarpet"
   s.add_dependency "rdiscount"
   s.add_dependency "maruku"
-  s.add_dependency "kramdown"
+  s.add_dependency "kramdown", ">= 2.3.0"
   s.add_dependency "bluecloth"
   s.add_dependency "faraday", "< 0.9" # stupid warning on 0.9.X
   
