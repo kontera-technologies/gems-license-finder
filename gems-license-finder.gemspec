@@ -10,27 +10,28 @@ Gem::Specification.new do |s|
   s.platform              = Gem::Platform::RUBY
   s.summary               = "Poor man's license finder for rubygems"
   s.description           = "Poor man's license finder for rubygems, that might work"
-  s.author                = "Eran Barak Levi"
+  s.author                = "Eran"
   s.email                 = "eran@kontera.com"
   s.homepage              = 'http://www.kontera.com'
-  s.required_ruby_version = '>= 1.9.1'
+  s.required_ruby_version = '>= 2.1.0'
   s.files                 = %w(README.md Rakefile Gemfile Gemfile.lock LICENSE) + Dir.glob("{lib,bin}/**/*")
   s.require_path          = "lib"
   s.bindir                = "bin"
   s.executable            = "gems-license-finder"
+  s.license               = "MIT"
 
-  s.add_development_dependency 'minitest'
-  s.add_development_dependency 'mocha'
+  s.add_development_dependency 'minitest', "~> 5.11.3"
+  s.add_development_dependency 'mocha', "~> 1.6.0"
 
-  s.add_dependency "github_api"
-  s.add_dependency "rack", ">= 2.1.4"
-  s.add_dependency "github-markup"
-  s.add_dependency "posix-spawn"
-  s.add_dependency "redcarpet"
-  s.add_dependency "rdiscount"
-  s.add_dependency "maruku"
-  s.add_dependency "kramdown", ">= 2.3.0"
-  s.add_dependency "bluecloth"
-  s.add_dependency "faraday", "< 0.9" # stupid warning on 0.9.X
+  s.add_dependency "github_api", "~> 0.19.0"
+  s.add_dependency "rack", "~> 2.2.3"
+  s.add_dependency "github-markup", "~> 3.0.5"
+  s.add_dependency "posix-spawn", "~> 0.3.15"
+  s.add_dependency "redcarpet", "~> 3.5.1"
+  s.add_dependency "rdiscount", "~> 2.2.0"
+  s.add_dependency "maruku", "~> 0.7.3"
+  s.add_dependency "kramdown", "~> 2.3.0"
+  s.add_dependency "bluecloth", "~> 2.2.0"
+  s.add_dependency "faraday", "~> 1.3.0"
   
 end
