@@ -35,7 +35,7 @@ GEM
       oauth2 (~> 1.0)
     hashie (3.6.0)
     jwt (2.2.2)
-    kramdown (2.3.0)
+    kramdown (2.3.1)
       rexml
     maruku (0.7.3)
     metaclass (0.0.4)
