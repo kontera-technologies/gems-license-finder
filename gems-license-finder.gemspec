@@ -24,7 +24,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'mocha', "~> 1.6.0"
 
   s.add_dependency "github_api", "~> 0.19.0"
-  s.add_dependency "rack", "~> 2.2.3"
+  s.add_dependency "rack", "~> 2.2.4"
   s.add_dependency "github-markup", "~> 3.0.5"
   s.add_dependency "posix-spawn", "~> 0.3.15"
   s.add_dependency "redcarpet", "~> 3.5.1"
@@ -32,6 +32,6 @@ Gem::Specification.new do |s|
   s.add_dependency "maruku", "~> 0.7.3"
   s.add_dependency "kramdown", "~> 2.3.0"
   s.add_dependency "bluecloth", "~> 2.2.0"
-  s.add_dependency "faraday", "~> 1.3.0"
+  s.add_dependency "faraday", "~> 1"
   
 end
