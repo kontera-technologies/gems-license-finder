@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    gems-license-finder (0.0.10)
+    gems-license-finder (0.0.11)
       bluecloth (~> 2.2.0)
       faraday (~> 1)
       github-markup (~> 3.0.5)
