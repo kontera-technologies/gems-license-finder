@@ -3,6 +3,7 @@
 require 'github_api'
 require 'open-uri'
 require 'uri'
+require 'bundler'
 require 'github/markup'
 require 'gems-license-finder/version'
 require 'cgi'
@@ -20,7 +21,7 @@ module GemsLicenseFinder
 
   class Client
     LICENSE_FILES = %w[LICENSE LICENSE.md LICENSE.markdown MIT-LICENSE
-                       LICENSE.txt MIT-LICENSE.txt MIT.LICENSE MIT_LICENSE 
+                       LICENSE.txt MIT-LICENSE.txt MIT.LICENSE MIT_LICENSE
                        MIT-LICENSE.md LICENSE.rdoc License
                        COPYING License.txt COPYING.md GNU GNU.txt GNU.rdoc GNU.markdown]
 
@@ -41,14 +42,39 @@ module GemsLicenseFinder
     }
 
     def initialize options = {}
+      @parallel = options.delete(:parallel) || 1
       @github = Github.new options.clone
     end
 
     def find name
+      lockfile?(name) ? find_from_lockfile(name) : find_single(name)
+    end
+
+    def find_single name
       normalize github_info(name , rubygems_info(name))
     end
 
+    def find_from_lockfile lockfile
+      Bundler::LockfileParser.new(Bundler.read_file lockfile).
+        specs.
+        map(&:name).
+        each_slice(@parallel).
+        reduce({}) {|acc, slice|
+          acc.merge(
+            slice.
+            map {|x| [x, Thread.new {find_single(x) rescue {}}]}.
+            map {|x, t| [x, t.value]}.
+            to_h
+          )
+        }
+    end
+
     private
+
+    def lockfile? str
+      File.exists?(str) &&
+        File.basename(str).eql?("Gemfile.lock")
+    end
 
     def rubygems_info name
       begin
@@ -84,7 +110,7 @@ module GemsLicenseFinder
         license = "#{url}/blob/master/#{file}" if content
 
         if license
-          type, lurl = (file =~ /mit|gnu/i) ? 
+          type, lurl = (file =~ /mit|gnu/i) ?
             normalize_licence(file.split(".").first) : type_from_license_text(content)
           break
         end
@@ -95,7 +121,7 @@ module GemsLicenseFinder
       end
 
       README_FILES.each do |file|
-        break if license and type 
+        break if license and type
         content = GitHub::Markup.render(file,fetch_github_file(user,repo,file)) rescue next
         type, lurl = normalize_licence(content) if type.nil?
 
@@ -105,7 +131,7 @@ module GemsLicenseFinder
           to_s.downcase.gsub(/\s/,"-") rescue nil
 
         if license.nil? and utf8_match(content,'licen[cs]e')
-          license = rurl 
+          license = rurl
           type, lurl = normalize_licence content
         end
 

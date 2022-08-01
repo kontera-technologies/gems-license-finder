@@ -8,7 +8,8 @@ require 'yaml'
 require 'json'
 require 'optparse'
 
-options = { output: ->(hash) { JSON.pretty_generate hash } }
+options = {output: ->(h) { JSON.pretty_generate h }}
+
 options[:oauth_token] =  ENV["GITHUB_TOKEN"] if ENV["GITHUB_TOKEN"]
 
 OptionParser.new do |opts|
@@ -21,6 +22,10 @@ OptionParser.new do |opts|
 
   opts.on("-t", "--token TOKEN", "github token string ( or by GITHUB_TOKEN environment variable )") do |v|
     options[:oauth_token] = v
+  end
+
+  opts.on("-p", "--parallel X", "number of threads to use") do |v|
+    options[:parallel] = v.to_i.zero? ? 1 : v.to_i
   end
 
   opts.on("-v", "--version","print current version and exit") do
